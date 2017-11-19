@@ -39,32 +39,6 @@
 	}
 
 
-	class dbConn{
-	    //variable to hold connection object.
-	    protected static $db;
-	    //private construct - class cannot be instatiated externally.
-	    private function __construct() {
-	        try {
-	            // assign PDO object to db variable
-	            self::$db = new PDO( 'mysql:host=' . CONNECTION .';dbname=' . DATABASE, USERNAME, PASSWORD );
-	            self::$db->setAttribute( PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION );
-	        }
-	        catch (PDOException $e) {
-	            //Output error - would normally log this to error file rather than output to user.
-	            echo "Connection Error: " . $e->getMessage();
-	        }
-	    }
-	    // get connection function. Static method - accessible without instantiation
-	    public static function getConnection() {
-	        //Guarantees single instance, if no connection object exists then create one.
-	        if (!self::$db) {
-	            //new connection object.
-	            new dbConn();
-	        }
-	        //return connection.
-	        return self::$db;
-	    }
-	}
 
 
 	//This Class contains the Layout of the entire program
@@ -90,9 +64,22 @@
 				$createData = processResults::generateTable($results);
 				$this->html .= $createData ;	
 
-				$results1 = $objCollection->getOneRecord();
+				$results1 = $objCollection->getOneRecord(7);
 				$createData1 = processResults::generateTable($results1);
 				$this->html .= $createData1;
+
+				$this->html .= "<br>";
+
+
+
+				$todoObj = todos::create();
+			    $todoObj->owneremail="someemail";
+			    $todoObj->ownerid=1;
+			    $todoObj->createddate='01-01-2017';
+			    $todoObj->duedate='01-10-2017';
+			    $todoObj->message="some message";
+			    $todoObj->isdone=0;
+				$todoObj->save();
 
 		}
 
@@ -121,6 +108,11 @@
 	class collection{
 
 
+		    static public function create() {
+		      $model = new static::$modelName;
+		      return $model;
+		    }
+
 
 		//This will execute the query passed and return the resultset
 		function getAllRecords() {
@@ -143,13 +135,13 @@
 		}
 
 		//This will execute the query passed and return the resultset
-		function getOneRecord() {
+		function getOneRecord($id) {
 
 		    try {
 		    	
 					$db = dbConn::getConnection();
 			        $tableName = get_called_class();
-			        $sql = "SELECT * FROM " . $tableName . " WHERE id = 2";
+			        $sql = "SELECT * FROM " . $tableName . " WHERE id = " . $id;
 			        $statement = $db->prepare($sql);
 			        $statement->execute();
 			        $class = static::$modelName;
@@ -163,6 +155,103 @@
 		}
 
 	}
+
+	class accounts extends collection {
+	    protected static $modelName = 'account';
+	}
+	class todos extends collection {
+	    protected static $modelName = 'todo';
+	}
+
+
+
+class model {
+
+
+    public function save(){
+
+
+    	$columnString;
+    	$valueString;
+
+        $tableName = $this->tableName;
+
+        echo "tablename :  $tableName";
+        
+	        if ($this->id = ' ') {
+	        	echo "inside if";
+	            $sql = $this->insert($tableName);
+
+	        }/* else {
+
+	            $sql = $this->update();
+	        }*/
+
+	    $db = dbConn::getConnection();
+/*        $statement = $db->prepare($sql);
+        $statement->execute();*/
+
+
+        $array = get_object_vars($this);
+
+        print_r($array);
+
+        $columnString = implode(',', $array);
+        $valueString = implode(',', array_fill(0,count($array),'?'));
+
+
+      print($valueString);
+       // echo "values: $valueString";
+
+        }
+
+
+        public function insert($tableName){
+
+        	echo "Inside Insert";
+//$sql = "heyy";
+        	$sql = "Insert Into ". $this->tableName ." (". $this->columnString . ")"; 	
+        	echo $sql;
+        	return $sql;
+        }
+
+
+
+
+    }
+
+
+class account extends model{
+
+
+	public $id;
+	public $email;
+	public $fname;
+	public $lname;
+	public $phone;
+	public $birthday;
+	public $gender;
+	public $password;
+
+}
+
+class todo extends model {
+    public $id;
+    public $owneremail;
+    public $ownerid;
+    public $createddate;
+    public $duedate;
+    public $message;
+    public $isdone;
+
+
+    public function __construct(){
+        
+        $this->tableName = 'todos';
+	
+    }
+}
+
 
 
 	class processResults{
@@ -191,63 +280,35 @@
 	}
 
 
-	class accounts extends collection {
-	    protected static $modelName = 'account';
+
+
+
+	class dbConn{
+	    //variable to hold connection object.
+	    protected static $db;
+	    //private construct - class cannot be instatiated externally.
+	    private function __construct() {
+	        try {
+	            // assign PDO object to db variable
+	            self::$db = new PDO( 'mysql:host=' . CONNECTION .';dbname=' . DATABASE, USERNAME, PASSWORD );
+	            self::$db->setAttribute( PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION );
+	        }
+	        catch (PDOException $e) {
+	            //Output error - would normally log this to error file rather than output to user.
+	            echo "Connection Error: " . $e->getMessage();
+	        }
+	    }
+	    // get connection function. Static method - accessible without instantiation
+	    public static function getConnection() {
+	        //Guarantees single instance, if no connection object exists then create one.
+	        if (!self::$db) {
+	            //new connection object.
+	            new dbConn();
+	        }
+	        //return connection.
+	        return self::$db;
+	    }
 	}
-	class todos extends collection {
-	    protected static $modelName = 'todo';
-	}
-
-class model {
-    protected $tableName;
-    public function save()
-    {
-        if ($this->id = '') {
-            $sql = $this->insert();
-        } else {
-            $sql = $this->update();
-        }
-
-        }
-    }
-
-
-class account extends model{
-
-
-	public $id;
-	public $email;
-	public $fname;
-	public $lname;
-	public $phone;
-	public $birthday;
-	public $gender;
-	public $password;
-
-
-	
-
-}
-
-class todo extends model {
-    public $id;
-    public $owneremail;
-    public $ownerid;
-    public $createddate;
-    public $duedate;
-    public $message;
-    public $isdone;
-
-
-    public function __construct(){
-        
-        $this->tableName = 'todos';
-	
-    }
-}
-
-
-
 
 
 
