@@ -16,10 +16,10 @@
 
 
 
-	define('DATABASE', 'kwilliam');
-	define('USERNAME', 'kwilliam');
-	define('PASSWORD', 'ma9euXF1H');
-	define('CONNECTION', 'sql2.njit.edu');
+	define('DATABASE', 'ps834');
+	define('USERNAME', 'ps834');
+	define('PASSWORD', 'q1ZT9FnRO');
+	define('CONNECTION', 'sql1.njit.edu');
 	$obj = new main();
 
 	class main{
@@ -28,15 +28,10 @@
 
 		public function __construct(){
 
-				//Set the condition as and when needed else set is as empty string 
-				$condition = "where id < 6";
-
-				//Set Query
-				$query="select * from accounts $condition";
 
 				//Execute the Program
 				$progObj = new programExecution();
-				$progObj->executeProgram($query);
+				$progObj->executeProgram();
 
 
 		}
@@ -72,39 +67,6 @@
 	}
 
 
-
-/*	class PDODefinition{
-
-
-
-		//Connecting to Database using the parameters passed by the main
-		static function openPdoConnection($hostname,$username,$pwd){
-
-
-			try{
-				$conn = new PDO("mysql:host=$hostname;dbname=ps834",$username,$pwd);
-				printStrings::printText(htmlLayout::setBold("Connected successfully") . htmlLayout::goToNextLine());
-
-			}catch(PDOException $e){
-
-				//Print Database Connection Error
-				printStrings::printText("Error while connecting to the database : " . $e->getMessage());
-			}
-				return $conn;
-
-		}
-
-
-		//Close Connection
-		static function closeConnection($conn){ 
-
-			$conn.close();
-		}
-
-	}*/
-
-
-
 	//This Class contains the Layout of the entire program
 	class programExecution{
 
@@ -120,29 +82,34 @@
 
 
 		//This function will call functions to create table and count no. of records returned
-		public function executeProgram($query){
+		public function executeProgram(){
 
 				//$results = collection::getAllRecords($conn,$query);
 				$objCollection = new todos();
 				$results = $objCollection->getAllRecords();
 				$createData = processResults::generateTable($results);
-				printStrings::printText($countValue);
-				$this->html .= $createData . htmlLayout::goToNextLine();		
+				$this->html .= $createData ;	
+
+				$results1 = $objCollection->getOneRecord();
+				$createData1 = processResults::generateTable($results1);
+				$this->html .= $createData1;
 
 		}
 
 
 		public function __destruct(){
 
-			//End Table and close HTML
-			$this->html .=  htmlLayout::endTable();
+
 			$this->html .=  htmlLayout::endHTML();
 
 			//Print Program output
 			printStrings::printText($this->html);
-
+/*
 			//Close Database Connection
-			PDODefinition::closeConnection($conn);
+			PDODefinition::closeConnection($conn);*/
+
+
+
 		}
 
 
@@ -156,10 +123,10 @@
 
 
 		//This will execute the query passed and return the resultset
-		function getAllRecords($query) {
+		function getAllRecords() {
 
 		    try {
-		    	
+
 					$db = dbConn::getConnection();
 			        $tableName = get_called_class();
 			        $sql = 'SELECT * FROM ' . $tableName;
@@ -176,25 +143,51 @@
 		}
 
 		//This will execute the query passed and return the resultset
-		function getOneRecord($query) {
+		function getOneRecord() {
 
 		    try {
 		    	
 					$db = dbConn::getConnection();
 			        $tableName = get_called_class();
-			        $sql = 'SELECT * FROM ' . $tableName;
+			        $sql = "SELECT * FROM " . $tableName . " WHERE id = 2";
 			        $statement = $db->prepare($sql);
 			        $statement->execute();
 			        $class = static::$modelName;
 			        $statement->setFetchMode(PDO::FETCH_CLASS, $class);
 			        $recordsSet =  $statement->fetchAll();
-			        return $recordsSet[0];	
+			        return $recordsSet;	
 
 			} catch (PDOException $e) {
 				http_error("500 Internal Server Error\n\n"."There was a SQL error:\n\n" . $e->getMessage());
 			}	  
 		}
 
+	}
+
+
+	class processResults{
+
+		
+		//Function to generate results in tabular format as per the resultset passed
+		static function generateTable($results){
+
+
+			$createData =  htmlLayout::beginTable();
+			$createData .= htmlLayout::beginTableRow(); 
+			foreach($results as $rows){
+				foreach($rows as $key => $values){
+						$createData .= htmlLayout::createTableData($values);
+				}
+				$createData .= htmlLayout::endTableRow();
+			} 
+
+			
+			//End Table and close HTML
+			$createData .=  htmlLayout::endTable();
+			$createData .= htmlLayout::goToNextLine();
+			return $createData;
+		}
+		
 	}
 
 
@@ -219,6 +212,23 @@ class model {
     }
 
 
+class account extends model{
+
+
+	public $id;
+	public $email;
+	public $fname;
+	public $lname;
+	public $phone;
+	public $birthday;
+	public $gender;
+	public $password;
+
+
+	
+
+}
+
 class todo extends model {
     public $id;
     public $owneremail;
@@ -227,48 +237,16 @@ class todo extends model {
     public $duedate;
     public $message;
     public $isdone;
-    public function __construct()
-    {
+
+
+    public function __construct(){
+        
         $this->tableName = 'todos';
 	
     }
 }
 
 
-	class processResults{
-
-		
-
-		//Function to generate results in tabular format as per the resultset passed
-		static function generateTable($results){
-
-			$i=0;
-			$createData = htmlLayout::beginTableRow(); 
-			foreach($results as $rows){
-				foreach($rows as $key => $values){
-					if($i==0){
-						$createData .= htmlLayout::createTableData(htmlLayout::setBold(htmlLayout::toUpperCase($key)));
-					}else{
-						$createData .= htmlLayout::createTableData($values);
-					}
-					
-				}
- 				$i++;
-				$createData .= htmlLayout::endTableRow();
-
-			} 
-			return $createData;
-		}
-
-		//Function to count the number of data in the result set
-		static function countRecords($results){
-
-			$text = "No. of Records: " . sizeof($results) . htmlLayout::goToNextLine();
-			return $text;
-
-		}
-		
-	}
 
 
 
