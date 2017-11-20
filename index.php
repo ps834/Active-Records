@@ -221,7 +221,7 @@ class model {
 
         public function update($tableName){
 
-        	$sql = "Update $tableName set " . $columnName = $valueName . " where " $conditionID = $conditionValue;  	
+        	$sql = "Update $tableName set " . static::$columnName = static::$valueName . " where " static::$conditionID = static::$conditionValue;  	
         	return $sql;
         }
 
@@ -230,7 +230,7 @@ class model {
         	$sql = "Delete from " . $tableName . " where " $conditionID = $conditionValue;
         }*/
 
-    }
+    } 
 
 
 class account extends model{
@@ -258,6 +258,10 @@ class todo extends model {
 
 
    static $data = array(20,'srk@njit.edu','Sunny','Jain','122','1995-12-12','Male','sunny');
+   static $columnName = "message";
+   static $valueName = "Updated Message";
+   static $columnID = "id";
+   static $conditionValue = "210";
 
     public function __construct(){
         
