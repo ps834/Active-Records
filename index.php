@@ -81,10 +81,17 @@
 			    $todoObj->isdone=0;
 				$todoObj->save();
 
+				$todoObjUpdate = todos::create();
+				$todoObjUpdate->id=220;
+				$todoObjUpdate->message='"Updated Message"';
+				$todoObjUpdate->isdone=1;
+				$todoObjUpdate->save();
 
-				$todoObj->id=210;
 
-				$todoObj->save();
+				$todoObjDelete = todos::create();
+				$todoObjDelete->delete(321); 
+
+
 
 
 		}
@@ -176,6 +183,8 @@ class model {
 
     	static $columnString;
     	static $valueString;
+    	static $condition ;
+    	static $columns;
 
     public function save(){
 
@@ -184,51 +193,83 @@ class model {
         $tableName = $this->tableName;
         $array = get_object_vars($this);
 
-        static::$valueString = implode(',', array_slice($array, 0, sizeof($array)-1));
-        static::$columnString = implode(',', array_keys(array_slice($array, 0, sizeof($array)-1)));
-        static::$valueString = 320 . static::$valueString ;
 
 	        if ($this->id == '') {
-	            $sql = $this->insert($tableName);
+
+
+		        static::$valueString = implode(',', array_slice($array, 0, sizeof($array)-1));
+		        static::$columnString = implode(',', array_keys(array_slice($array, 0, sizeof($array)-1)));
+		        static::$valueString = 325 . static::$valueString ;
+
+	            $sql = $this->insert();
+
 
 	        } else {
+
+	        	$keyValues = "";
+	        	$valuesString = "";
+	        	$i=1;
+	        	foreach($array as $key => $values){
+	        		if($values!=null && $values!='' && $values != $this->tableName){
+	        			
+	        			if($i==1){
+	        				static::$condition = $key . "=" . $values;
+	        			}else{
+	        				static::$columns .= $key . "=" . $values . ",";
+	        			}
+	        			
+	        			$i++;
+	        		}
+
+	        	}
+
+				static::$columns = substr(static::$columns,0, strlen(static::$columns)-1);
+
+
 
 	            $sql = $this->update();
 	        }
 
-	   try{
 
-		    $db = dbConn::getConnection();
-	        $statement = $db->prepare($sql);
-	        $statement->execute();  
- 	        echo "data inserted";
-
-	     }catch(Exception $e){
-
-	       	echo "error ::: " .  $e->getMessage() . "  <br>";
-
-	     }
-
+	        self::runQuery($sql);
         }
 
 
-        public function insert($tableName){
+        public function insert(){
 
 
         	$sql = "Insert Into ". $this->tableName ." (". static::$columnString . ") VALUES (" . static::$valueString . ")"; 	
         	return $sql;
         }
 
-        public function update($tableName){
+        public function update(){
 
-        	$sql = "Update $tableName set " . static::$columnName = static::$valueName . " where " static::$conditionID = static::$conditionValue;  	
+        $sql = 'Update ' . $this->tableName . ' set ' . static::$columns . " where " . static::$condition;
         	return $sql;
         }
 
-/*        public function delete($tableName){
+       public function delete($id){
 
-        	$sql = "Delete from " . $tableName . " where " $conditionID = $conditionValue;
-        }*/
+        	$sql = "Delete from " . $this->tableName . " where id = " . $id;
+        	self::runQuery($sql);
+        }
+
+
+        static public function runQuery($sql){
+
+        try{
+
+		    $db = dbConn::getConnection();
+	        $statement = $db->prepare($sql);
+	        $statement->execute();  
+ 	      //  echo "data inserted";
+
+	     }catch(Exception $e){
+
+	       	echo "error ::: " .  $e->getMessage() . "  <br>";
+
+	     }
+        }
 
     } 
 
@@ -248,6 +289,7 @@ class account extends model{
 }
 
 class todo extends model {
+
     public $id;
     public $owneremail;
     public $ownerid;
@@ -256,8 +298,6 @@ class todo extends model {
     public $message;
     public $isdone;
 
-
-   static $data = array(20,'srk@njit.edu','Sunny','Jain','122','1995-12-12','Male','sunny');
    static $columnName = "message";
    static $valueName = "Updated Message";
    static $columnID = "id";
