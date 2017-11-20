@@ -58,41 +58,84 @@
 		//This function will call functions to create table and count no. of records returned
 		public function executeProgram(){
 
-				//$results = collection::getAllRecords($conn,$query);
-				$objCollection = new todos();
+
+				$objCollection = new accounts();
+				$todoObjects = new todos();
+
+				//Display all records in accounts 
+				$this->html .= htmlLayout::setHeaderSize("Select all records from accounts table");
 				$results = $objCollection->getAllRecords();
 				$createData = processResults::generateTable($results);
 				$this->html .= $createData ;	
+				$this->html .= htmlLayout::goToNextLine();
+				$this->html .= htmlLayout::horizontalLine();
 
+
+				//Fetch a record from accounts where ID is 7
+				$this->html .= htmlLayout::setHeaderSize("Fetch a record from accounts where ID is 7");
 				$results1 = $objCollection->getOneRecord(7);
 				$createData1 = processResults::generateTable($results1);
 				$this->html .= $createData1;
+				$this->html .= htmlLayout::goToNextLine();
+				$this->html .= htmlLayout::horizontalLine();
 
-				$this->html .= "<br>";
 
+				//Display all records in todos 
+				$this->html .= htmlLayout::setHeaderSize("Select all records from todos table");
+				$results = $todoObjects->getAllRecords();
+				$createData = processResults::generateTable($results);
+				$this->html .= $createData ;	
+				$this->html .= htmlLayout::goToNextLine();
+				$this->html .= htmlLayout::horizontalLine();
 
+				//Fetch a record from todos where ID is 7
+				$this->html .= htmlLayout::setHeaderSize("Fetch a record from todos where ID is 7");
+				$results1 = $todoObjects->getOneRecord(7);
+				$createData1 = processResults::generateTable($results1);
+				$this->html .= $createData1;
+				$this->html .= htmlLayout::goToNextLine();
+				$this->html .= htmlLayout::horizontalLine();
 
+				//Insert a record in Todos Table
+				$this->html .= htmlLayout::setHeaderSize("Insert a record in todos table");
 				$todoObj = todos::create();
-			    $todoObj->owneremail='"someemail"';
+			    $todoObj->owneremail='"mj812@gmail.com"';
 			    $todoObj->ownerid=1;
-			    $todoObj->createddate='"01-01-2017"';
-			    $todoObj->duedate='"01-10-2017"';
-			    $todoObj->message='"some message"';
+			    $todoObj->createddate='"2017-01-01"';
+			    $todoObj->duedate='"2017-01-10"';
+			    $todoObj->message='"Need to Update Password"';
 			    $todoObj->isdone=0;
 				$todoObj->save();
+				$results = $todoObjects->getAllRecords();
+				$createData = processResults::generateTable($results);
+				$this->html .= $createData ;	
+				$this->html .= htmlLayout::goToNextLine();
+				$this->html .= htmlLayout::horizontalLine();
 
+
+				//Update message in todos table where ID = 1 and set isdone as 1
+				$this->html .= htmlLayout::setHeaderSize("Update message in todos table and set isdone as 1");
 				$todoObjUpdate = todos::create();
-				$todoObjUpdate->id=220;
-				$todoObjUpdate->message='"Updated Message"';
+				$todoObjUpdate->id=1;
+				$todoObjUpdate->message='"Password Updated "';
 				$todoObjUpdate->isdone=1;
 				$todoObjUpdate->save();
+				$results = $todoObjects->getOneRecord(1);
+				$createData = processResults::generateTable($results);
+				$this->html .= $createData ;	
+				$this->html .= htmlLayout::goToNextLine();
+				$this->html .= htmlLayout::horizontalLine();				
 
 
-				$todoObjDelete = todos::create();
-				$todoObjDelete->delete(321); 
-
-
-
+				//Delete the record from accounts table 
+				$this->html .= htmlLayout::setHeaderSize("Delete the record from todos table where id = 9");
+				$accObjDelete = accounts::create();
+				$accObjDelete->delete(9); 
+				$results = $objCollection->getAllRecords();
+				$createData = processResults::generateTable($results);
+				$this->html .= $createData ;	
+				$this->html .= htmlLayout::goToNextLine();
+				$this->html .= htmlLayout::horizontalLine();	
 
 		}
 
@@ -104,10 +147,6 @@
 
 			//Print Program output
 			printStrings::printText($this->html);
-/*
-			//Close Database Connection
-			PDODefinition::closeConnection($conn);*/
-
 
 
 		}
@@ -196,10 +235,10 @@ class model {
 
 	        if ($this->id == '') {
 
-
+	        	$id = rand(200,500);
 		        static::$valueString = implode(',', array_slice($array, 0, sizeof($array)-1));
 		        static::$columnString = implode(',', array_keys(array_slice($array, 0, sizeof($array)-1)));
-		        static::$valueString = 325 . static::$valueString ;
+		        static::$valueString = $id . static::$valueString ;
 
 	            $sql = $this->insert();
 
@@ -251,7 +290,7 @@ class model {
        public function delete($id){
 
         	$sql = "Delete from " . $this->tableName . " where id = " . $id;
-        	self::runQuery($sql);
+        	self::runQuery($sql); 
         }
 
 
@@ -286,6 +325,12 @@ class account extends model{
 	public $gender;
 	public $password;
 
+	 public function __construct(){
+        
+        $this->tableName = 'accounts';
+	
+    }
+
 }
 
 class todo extends model {
@@ -298,10 +343,6 @@ class todo extends model {
     public $message;
     public $isdone;
 
-   static $columnName = "message";
-   static $valueName = "Updated Message";
-   static $columnID = "id";
-   static $conditionValue = "210";
 
     public function __construct(){
         
@@ -366,6 +407,7 @@ class todo extends model {
 	        //return connection.
 	        return self::$db;
 	    }
+
 	}
 
 
@@ -444,11 +486,24 @@ class htmlLayout{
 		return '<br>';
 	}
 
+	//Print a horizontal Line
+	static function horizontalLine(){
+
+		return '<hr>';
+	}
+
 	//Converts the entire String to upper case
 	static function toUpperCase($value){
 
 		return strtoupper($value);
 	}
+
+	//Set h3 header Tag
+	static function setHeaderSize($text){
+
+		return '<h3>' . $text . '</h3>';
+	}
+
 
 }
 
