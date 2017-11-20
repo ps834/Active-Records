@@ -15,7 +15,7 @@
 	spl_autoload_register(array('Manage','autoload'));
 
 
-
+	//Set DB Connection Parameters
 	define('DATABASE', 'ps834');
 	define('USERNAME', 'ps834');
 	define('PASSWORD', 'q1ZT9FnRO');
@@ -166,7 +166,7 @@
 		    }
 
 
-		//This will execute the query passed and return the resultset
+		//This will return all the records from the table
 		function getAllRecords() {
 
 		    try {
@@ -178,7 +178,7 @@
 			        $statement->execute();
 			        $class = static::$modelName;
 			        $statement->setFetchMode(PDO::FETCH_CLASS, $class);
-			        $recordsSet =  $statement->fetchAll();
+			        $recordsSet =  $statement->fetchAll(PDO::FETCH_ASSOC);
 			        return $recordsSet;	
 
 			} catch (PDOException $e) {
@@ -186,7 +186,7 @@
 			}	  
 		}
 
-		//This will execute the query passed and return the resultset
+		//This will return only one row from the table
 		function getOneRecord($id) {
 
 		    try {
@@ -198,7 +198,7 @@
 			        $statement->execute();
 			        $class = static::$modelName;
 			        $statement->setFetchMode(PDO::FETCH_CLASS, $class);
-			        $recordsSet =  $statement->fetchAll();
+			        $recordsSet =  $statement->fetchAll(PDO::FETCH_ASSOC);
 			        return $recordsSet;	
 
 			} catch (PDOException $e) {
@@ -225,18 +225,24 @@ class model {
     	static $condition ;
     	static $columns;
 
+
+
+    // Will execute Insert and Update function
     public function save(){
-
-
 
         $tableName = $this->tableName;
         $array = get_object_vars($this);
 
 
+        	//if ID is empty, then insert a record
 	        if ($this->id == '') {
 
 	        	$id = rand(200,500);
+
+	        	///Will segregate the values from array and form a String
 		        static::$valueString = implode(',', array_slice($array, 0, sizeof($array)-1));
+
+		        ///Will segregate the column from array and form a String
 		        static::$columnString = implode(',', array_keys(array_slice($array, 0, sizeof($array)-1)));
 		        static::$valueString = $id . static::$valueString ;
 
@@ -248,6 +254,8 @@ class model {
 	        	$keyValues = "";
 	        	$valuesString = "";
 	        	$i=1;
+
+	        	//separate the column names, values to be set and condition
 	        	foreach($array as $key => $values){
 	        		if($values!=null && $values!='' && $values != $this->tableName){
 	        			
@@ -274,6 +282,7 @@ class model {
         }
 
 
+        //Insert a record 
         public function insert(){
 
 
@@ -281,12 +290,15 @@ class model {
         	return $sql;
         }
 
+
+        //Update a record
         public function update(){
 
         $sql = 'Update ' . $this->tableName . ' set ' . static::$columns . " where " . static::$condition;
         	return $sql;
         }
 
+        //Delete a record
        public function delete($id){
 
         	$sql = "Delete from " . $this->tableName . " where id = " . $id;
@@ -294,6 +306,7 @@ class model {
         }
 
 
+        //Executes the query 
         static public function runQuery($sql){
 
         try{
@@ -301,16 +314,16 @@ class model {
 		    $db = dbConn::getConnection();
 	        $statement = $db->prepare($sql);
 	        $statement->execute();  
- 	      //  echo "data inserted";
 
 	     }catch(Exception $e){
 
-	       	echo "error ::: " .  $e->getMessage() . "  <br>";
+	       	echo "Error : " .  $e->getMessage() . "  <br>";
 
 	     }
         }
 
     } 
+
 
 
 class account extends model{
@@ -361,11 +374,30 @@ class todo extends model {
 
 
 			$createData =  htmlLayout::beginTable();
-			$createData .= htmlLayout::beginTableRow(); 
-			foreach($results as $rows){
+
+			//Generate Table Header
+			foreach($results as $rows){	
+				$createData .= htmlLayout::beginTableRow(); 
 				foreach($rows as $key => $values){
-						$createData .= htmlLayout::createTableData($values);
+
+					$createData .= htmlLayout::createTableheader($key);
+
+
 				}
+
+				$createData .= htmlLayout::endTableRow();
+				break;
+			}
+
+			//Generate Table data
+			foreach($results as $rows){		
+			$createData .= htmlLayout::beginTableRow(); 
+			foreach($rows as $values){
+
+					$createData .= htmlLayout::createTableData($values);
+
+				}
+
 				$createData .= htmlLayout::endTableRow();
 			} 
 
@@ -463,6 +495,13 @@ class htmlLayout{
 	}
 
 
+	//Create table Header
+	static function createTableheader($values){
+
+		return '<th>' . $values . '</th>';
+	}
+
+	//Create Table Data
 	static function createTableData($values){
 
 		return '<td>' . $values . '</td>';
