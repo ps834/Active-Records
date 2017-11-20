@@ -73,11 +73,11 @@
 
 
 				$todoObj = todos::create();
-			    $todoObj->owneremail="someemail";
+			    $todoObj->owneremail='"someemail"';
 			    $todoObj->ownerid=1;
-			    $todoObj->createddate='01-01-2017';
-			    $todoObj->duedate='01-10-2017';
-			    $todoObj->message="some message";
+			    $todoObj->createddate='"01-01-2017"';
+			    $todoObj->duedate='"01-10-2017"';
+			    $todoObj->message='"some message"';
 			    $todoObj->isdone=0;
 				$todoObj->save();
 
@@ -168,55 +168,56 @@
 class model {
 
 
+    	static $columnString;
+    	static $valueString;
+
     public function save(){
 
 
-    	$columnString;
-    	$valueString;
 
         $tableName = $this->tableName;
-
-        echo "tablename :  $tableName";
-        
-	        if ($this->id = ' ') {
-	        	echo "inside if";
-	            $sql = $this->insert($tableName);
-
-	        }/* else {
-
-	            $sql = $this->update();
-	        }*/
-
-	    $db = dbConn::getConnection();
-/*        $statement = $db->prepare($sql);
-        $statement->execute();*/
-
-
         $array = get_object_vars($this);
 
-        print_r($array);
+        static::$valueString = implode(',', array_slice($array, 0, sizeof($array)-1));
+        static::$columnString = implode(',', array_keys(array_slice($array, 0, sizeof($array)-1)));
+        static::$valueString = 320 . static::$valueString ;
 
-        $columnString = implode(',', $array);
-        $valueString = implode(',', array_fill(0,count($array),'?'));
+	        if ($this->id == '') {
+	            $sql = $this->insert($tableName);
 
+	        } else {
 
-      print($valueString);
-       // echo "values: $valueString";
+	          //  $sql = $this->update();
+	        }
+
+	   try{
+
+		    $db = dbConn::getConnection();
+	        $statement = $db->prepare($sql);
+	        $statement->execute();  
+	        echo "data inserted";
+
+	     }catch(Exception $e){
+
+	       	echo "error ::: " .  $e->getMessage() . "  <br>";
+
+	     }
 
         }
 
 
         public function insert($tableName){
 
-        	echo "Inside Insert";
-//$sql = "heyy";
-        	$sql = "Insert Into ". $this->tableName ." (". $this->columnString . ")"; 	
-        	echo $sql;
+
+        	$sql = "Insert Into ". $this->tableName ." (". static::$columnString . ") VALUES (" . static::$valueString . ")"; 	
         	return $sql;
         }
+/*
+        public function update($tableName){
 
-
-
+        	$sql = "Update $tableName set " . $columnName = $valueName where $conditionID = $conditionValue;  	
+        	return $sql;
+        }*/
 
     }
 
@@ -244,6 +245,8 @@ class todo extends model {
     public $message;
     public $isdone;
 
+
+   static $data = array(20,'srk@njit.edu','Sunny','Jain','122','1995-12-12','Male','sunny');
 
     public function __construct(){
         
