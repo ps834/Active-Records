@@ -81,6 +81,12 @@
 			    $todoObj->isdone=0;
 				$todoObj->save();
 
+
+				$todoObj->id=210;
+
+				$todoObj->save();
+
+
 		}
 
 
@@ -187,7 +193,7 @@ class model {
 
 	        } else {
 
-	          //  $sql = $this->update();
+	            $sql = $this->update();
 	        }
 
 	   try{
@@ -195,7 +201,7 @@ class model {
 		    $db = dbConn::getConnection();
 	        $statement = $db->prepare($sql);
 	        $statement->execute();  
-	        echo "data inserted";
+ 	        echo "data inserted";
 
 	     }catch(Exception $e){
 
@@ -212,11 +218,16 @@ class model {
         	$sql = "Insert Into ". $this->tableName ." (". static::$columnString . ") VALUES (" . static::$valueString . ")"; 	
         	return $sql;
         }
-/*
+
         public function update($tableName){
 
-        	$sql = "Update $tableName set " . $columnName = $valueName where $conditionID = $conditionValue;  	
+        	$sql = "Update $tableName set " . $columnName = $valueName . " where " $conditionID = $conditionValue;  	
         	return $sql;
+        }
+
+/*        public function delete($tableName){
+
+        	$sql = "Delete from " . $tableName . " where " $conditionID = $conditionValue;
         }*/
 
     }
